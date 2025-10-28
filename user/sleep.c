@@ -11,5 +11,11 @@ main(int argc, char *argv[])
     exit(1);
   }
 
-  int n_time = 
+  // convert string to int
+  int n_time = atoi(argv[1]);
+
+  // call `sleep` system call
+  sleep(n_time);
+
+  exit(0);
 }
