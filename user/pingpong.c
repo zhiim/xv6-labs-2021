@@ -14,26 +14,26 @@ main()
   if (child_pid == 0) {
     // inside child process
 
-    read(p[0], *buffer, 1);
+    read(p[0], &buffer, 1);
     close(p[0]);
 
     int pid = getpid();
-    printf("%d: received ping", pid);
+    printf("%d: received ping\n", pid);
 
-    write(p[1], *buffer, 1);
+    write(p[1], &buffer, 1);
     close(p[1]);
   } else {
     // inside parent process
 
-    write(p[1], *buffer, 1);
+    write(p[1], &buffer, 1);
     close(p[1]);
 
-    wait((int *) 0);  // wait for child process
-
-    read(p[0], *buffer, 1);
+    read(p[0], &buffer, 1);
     close(p[0]);
 
     int pid = getpid();
-    printf("%d: received pong", pid);
+    printf("%d: received pong\n", pid);
   }
+
+  exit(0);
 }
