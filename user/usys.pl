@@ -37,3 +37,4 @@ entry("sbrk");
 entry("sleep");
 entry("uptime");
 entry("trace");  # generate entry for user space syscall
+entry("sysinfo");
