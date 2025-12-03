@@ -135,6 +135,26 @@ found:
     return 0;
   }
 
+  // +---------------------------------------------------------+
+  // | Speed up system calls II: initiate struct usyscall and  |
+  // |                     store pid in it                     |
+  // +---------------------------------------------------------+
+  // II-1. In kernel address space, virtual address equals with phsical address.
+  //    Firstly, if USYSCALL is a high virtual address, it may not be mapped in
+  //    kernel address space.
+  //    Secondly, if USYSCALL is mapped in kernel already, kernel will use the
+  //    kernel paging table but processing paging table.
+  uint64 pa = walkaddr(p->pagetable, USYSCALL);  // get phasical address
+  if (pa == 0) {
+    freeproc(p);
+    release(&p->lock);
+    return 0;
+  }
+  // II-2. pa is the same as it's mapped kernel virtual space, so we can use it to
+  //    as pointer directly.
+  struct usyscall *uc = (struct usyscall *)pa;
+  uc->pid = p->pid;
+
   // Set up new context to start executing at forkret,
   // which returns to user space.
   memset(&p->context, 0, sizeof(p->context));
@@ -196,6 +216,30 @@ proc_pagetable(struct proc *p)
     return 0;
   }
 
+  // +---------------------------------------------------------+
+  // |  Speed up system calls I: map the USYSCALL just below   |
+  // |                        TRAPFRAME                        |
+  // +---------------------------------------------------------+
+  // I-1. first allocate a free page for USYSCALL, the kalloc return the virtual
+  //    address of allocated free page. In kernel address space, it's just the
+  //    same as phsical address.
+  uint64 free_page = (uint64)kalloc();
+  if (free_page == 0) {
+    uvmunmap(pagetable, TRAPFRAME, 1, 0);
+    uvmunmap(pagetable, TRAMPOLINE, 1, 0);
+    uvmfree(pagetable, 0);
+    return 0;
+  }
+  // I-2. map USYSCALL to USYSCALL+PGSIZE to the allocated phsical address range
+  if(mappages(pagetable, USYSCALL, PGSIZE,
+              free_page, PTE_R | PTE_U) < 0){
+    kfree((void *)free_page);
+    uvmunmap(pagetable, TRAPFRAME, 1, 0);
+    uvmunmap(pagetable, TRAMPOLINE, 1, 0);
+    uvmfree(pagetable, 0);
+    return 0;
+  }
+
   return pagetable;
 }
 
@@ -206,6 +250,14 @@ proc_freepagetable(pagetable_t pagetable, uint64 sz)
 {
   uvmunmap(pagetable, TRAMPOLINE, 1, 0);
   uvmunmap(pagetable, TRAPFRAME, 1, 0);
+  // +---------------------------------------------------------+
+  // |  Speed up system calls III: unmap and free allocation   |
+  // +---------------------------------------------------------+
+  // We need set `do_free` to 1, because page of USYSCALL is created and managed
+  // by ourselves.
+  // 虽然 uvmfree 内部也包含了 kfree 操作，但是 uvmfree 只会释放 p->sz 大小，
+  // 并没有包含 USYSCALL
+  uvmunmap(pagetable, USYSCALL, 1, 1);  // unmap USYSCALL
   uvmfree(pagetable, sz);
 }
 
