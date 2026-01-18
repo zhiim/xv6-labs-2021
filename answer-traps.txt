@@ -1,0 +1,7 @@
+Q: Which registers contain arguments to functions? For example, which register holds 13 in main's call to printf?
+A: a0-a7 for integers and fa0-fa7 for floats. a2 is used to hold 13.
+
+Q: Where is the call to function f in the assembly code for main? Where is the call to g? (Hint: the compiler may inline functions.)
+A: Calls to f and g are automatically inlined.
+
+Q: At what address is the function printf located?
