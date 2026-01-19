@@ -5,3 +5,7 @@ Q: Where is the call to function f in the assembly code for main? Where is the c
 A: Calls to f and g are automatically inlined.
 
 Q: At what address is the function printf located?
+A: 0x630
+
+Q: What value is in the register ra just after the jalr to printf in main?
+A: 
