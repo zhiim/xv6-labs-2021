@@ -132,3 +132,19 @@ printfinit(void)
   initlock(&pr.lock, "pr");
   pr.locking = 1;
 }
+
+void
+backtrace(void)
+{
+  printf("backtrace:\n");
+
+  uint64 fp = r_fp();
+  uint64 up_addr = PGROUNDUP(fp);
+  uint64 down_addr = PGROUNDDOWN(fp);
+
+  while (fp < up_addr && fp >= down_addr) {
+    printf("%p\n", *(uint64*)(fp - 8));
+    // 获取 caller 的栈指针
+    fp = *(uint64*)(fp - 16);
+  }
+}
