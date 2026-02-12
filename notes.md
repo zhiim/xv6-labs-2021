@@ -87,3 +87,41 @@ void main(void) {
 ```c
     fp = *(uint64*)(fp - 16);
 ```
+
+## Alarm
+
+### 系统调用
+
+`user/user.h` 添加 system call 的调用接口
+
+`kernel/syscall.h` 添加 SYS_ 的索引值定义
+
+`user/usys.pl` 通过脚本为每个用户空间的 system call 生成入口，将 system call 索引加载到 `a7` 寄存器，然后执行 `ecall` 进入系统调用
+
+`kernel/syscall.c` 中 `syscall` 函数读取 `a7` 寄存器的值，并执行对应的系统调用函数 `sys_xxx`
+
+在系统调用函数内，通过 `argint`、`argaddr` 等获取 system call 传入的参数
+
+### sys_sigalarm
+
+修改 `kernel/proc.h`，在 `struct proc` 内添加 `alarm_interval` 用于记录 alarm 周期，`alarm_handler` 用于记录 handler 的地址，`alarm_interval_passed` 记录已经经过的周期
+
+`kernel/proc.c` 里 `allocproc` 初始化 `alarm_interval_passed` 为 0
+
+`sys_sigalarm` 中分别使用 `argint` 和 `argaddr` 获取 system call `sigalarm` 的传输参数，并保存在 `proc` 结构体中
+
+`kernel/trap.c` 中的 `usertrap` 用于判断何种trap，其中计数器中断对应 `which_dev == 2`，每次增加 `alarm_interval_passed` 直到达到 `alarm_interval`。将 `alarm_handler` 的地址（用户空间的地址，内核空间无法直接使用）赋给 `trapframe->epc`，当 trap 返回用户空间时执行 handler
+
+### sys_sigreturn
+
+`trapframe->epc` 被替换成了 handler 的地址，trap 返回用户空间后会执行 handler 函数，handler 会改变各种用于寄存器，当 handler 执行完之后已经无法恢复 trap 之前的状态
+
+在 handler 之前需要保存用户空间的状态，并在 handler 之后恢复（sigreturn）
+
+在 proc 结构体中定义用于保存状态的成员变量，并在 usertrap 的计时器中断部分进行保存。handler 结束之前执行 sigreturn 恢复到计时器中断之前
+
+### 防止中断干扰
+
+alarm handler 是用户态程序，在其执行的时候不应该有新的周期 alarm 产生，防止保存的状态寄存器被覆写
+
+应该设置变量指示是否处于 handler 中，handler 执行完在 sigreturn 中重置
