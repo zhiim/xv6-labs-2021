@@ -65,6 +65,53 @@ usertrap(void)
     intr_on();
 
     syscall();
+  } else if (r_scause() == 15) {
+    // page fault on write
+
+    pagetable_t pgtable = myproc()->pagetable;
+
+    uint64 va;
+    uint64 pa;
+    pte_t *pte;
+    uint flags;
+    char *mem;
+
+    va = PGROUNDDOWN(r_stval());
+    if (va >= MAXVA) {
+      myproc()->killed = 1;
+      exit(-1);
+    }
+
+    if ((pte = walk(pgtable, va, 0)) == 0) {
+      myproc()->killed = 1;
+      exit(-1);
+    }
+    if ((*pte & PTE_V) == 0) {
+      myproc()->killed = 1;
+      exit(-1);
+    }
+    pa = PTE2PA(*pte);
+
+    flags = PTE_FLAGS(*pte);
+    // if not cow page fault, exit
+    if ((flags & PTE_COW) == 0) {
+      myproc()->killed = 1;
+      exit(-1);
+    }
+    // let this page writeable and clear PTE_COW
+    flags = (flags | PTE_W) & (~PTE_COW);
+
+    if ((mem = kalloc()) == 0)
+      exit(-1);
+
+    // copy old page content to new page
+    memmove(mem, (char*)pa, PGSIZE);
+
+    // map the newly allocated page to pagetable
+    *pte = PA2PTE(mem) | flags;
+
+    // free the page only reference count to 0
+    kfree((void*)pa);
   } else if((which_dev = devintr()) != 0){
     // ok
   } else {
