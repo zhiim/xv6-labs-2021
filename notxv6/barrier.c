@@ -30,7 +30,23 @@ barrier()
   // Block until all threads have called barrier() and
   // then increment bstate.round.
   //
-  
+  // 使用锁保护对 bstate 修改的原子性
+  pthread_mutex_lock(&bstate.barrier_mutex);
+  bstate.nthread++;
+  // 如果还有线程没有到达 barrier
+  if (bstate.nthread < nthread) {
+    // 当前线程可以先让出 CPU，释放锁，并等待唤醒
+    pthread_cond_wait(&bstate.barrier_cond, &bstate.barrier_mutex);
+  }
+  // 如果当前线程已经是最后一个线程
+  else {
+    bstate.round++;
+    // 重置状态
+    bstate.nthread = 0;
+    // 唤醒其他休眠的线程，被唤醒的线程会重新获得锁
+    pthread_cond_broadcast(&bstate.barrier_cond);
+  }
+  pthread_mutex_unlock(&bstate.barrier_mutex);
 }
 
 static void *
