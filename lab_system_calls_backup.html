@@ -1,0 +1,249 @@
+<html style><!--
+ Page saved with SingleFile 
+ url: https://pdos.csail.mit.edu/6.828/2021/labs/syscall.html 
+ saved date: Sat May 16 2026 20:53:49 GMT+0800 (China Standard Time)
+--><meta charset=utf-8>
+<title>Lab: System calls</title>
+<style>.easy{color:#00cc00}.moderate{color:#0066ff}div.required,div.warning,div.prereq{margin-left:auto;margin-right:auto;margin-bottom:1em;margin-top:1em;width:80%;padding-left:1em;padding-right:1em}div.required{background-color:#e0e0ff;border:1px solid #c0c0ff}div.warning{background-color:#ffe0e0;border:1px solid #ffc0c0}div.prereq{background-color:#FFEFD5;border:1px solid #ffc0c0}kbd{color:#007700;font-family:monospace;font-weight:bold}</style>
+<meta name=referrer content=no-referrer><link type=image/x-icon rel="shortcut icon" href="data:image/x-icon;base64,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"><link rel=canonical href=https://pdos.csail.mit.edu/6.828/2021/labs/syscall.html><meta http-equiv=content-security-policy content="default-src 'none'; font-src 'self' data:; img-src 'self' data:; style-src 'unsafe-inline'; media-src 'self' data:; script-src 'unsafe-inline' data:; object-src 'self' data:; frame-src 'self' data:;"></head>
+<body>
+<h1>Lab: system calls</h1>
+<p>In the last lab you used systems calls to write a few utilities. In
+this lab you will add some new system calls to xv6, which will help
+you understand how they work and will expose you to some of the
+internals of the xv6 kernel. You will add more system calls in later
+labs.
+<div class=prereq>
+<p>Before you start coding, read Chapter 2 of
+ the <a href=https://pdos.csail.mit.edu/6.828/2021/xv6/book-riscv-rev1.pdf>xv6 book</a>, and
+ Sections 4.3 and 4.4 of Chapter 4, and
+ related source files:
+ 
+ <ul>
+ 
+ <li> The user-space code for systems calls is
+ in <tt>user/user.h</tt> and <tt>user/usys.pl</tt>.</li>
+ 
+ <li> The kernel-space code
+ is <tt>kernel/syscall.h</tt>, kernel/syscall.c.
+ <li> The process-related code is <tt>kernel/proc.h</tt> and <tt>kernel/proc.c</tt>.
+ 
+ </ul>
+</div>
+<p>To start the lab, switch to the syscall branch:
+ <pre>  $ <kbd>git fetch</kbd>
+  $ <kbd>git checkout syscall</kbd>
+  $ <kbd>make clean</kbd>
+  </pre>
+<p>If you run, make grade, you will see that the grading script cannot
+exec
+ <tt>trace</tt> and <tt>sysinfotest</tt>. Your job is to add the
+ necessary system calls and stubs to make them work.
+ 
+<h2>System call tracing (<a class=moderate href=https://pdos.csail.mit.edu/6.828/2021/labs/guidance.html>moderate</a>)</h2>
+<p>
+<div class=required>
+ In this assignment you will add a system call tracing feature that
+ may help you when debugging later labs. You'll create a
+ new <tt>trace</tt> system call that will control tracing. It should
+ take one argument, an integer "mask", whose bits specify which
+ system calls to trace. For example, to trace the fork system call,
+ a program calls <tt>trace(1 &lt;&lt; SYS_fork)</tt>, where <tt>SYS_fork</tt> is a
+ syscall number from <tt>kernel/syscall.h</tt>. You have to modify
+ the xv6 kernel to print out a line when each system call is about to
+ return, if the system call's number is set in the mask.
+ The line should contain the
+ process id, the name of the system call and the
+ return value; you don't need to print the system call
+ arguments. The <tt>trace</tt> system call should enable tracing 
+ for the process that calls it and any children that it subsequently forks,
+ but should not affect other processes.
+</div>
+<p>We provide a <tt>trace</tt> user-level program that runs another
+ program with tracing enabled (see <tt>user/trace.c</tt>). When you're
+ done, you should see output like this:
+<pre>$ trace 32 grep hello README
+3: syscall read -&gt; 1023
+3: syscall read -&gt; 966
+3: syscall read -&gt; 70
+3: syscall read -&gt; 0
+$
+$ trace 2147483647 grep hello README
+4: syscall trace -&gt; 0
+4: syscall exec -&gt; 3
+4: syscall open -&gt; 3
+4: syscall read -&gt; 1023
+4: syscall read -&gt; 966
+4: syscall read -&gt; 70
+4: syscall read -&gt; 0
+4: syscall close -&gt; 0
+$
+$ grep hello README
+$
+$ trace 2 usertests forkforkfork
+usertests starting
+test forkforkfork: 407: syscall fork -&gt; 408
+408: syscall fork -&gt; 409
+409: syscall fork -&gt; 410
+410: syscall fork -&gt; 411
+409: syscall fork -&gt; 412
+410: syscall fork -&gt; 413
+409: syscall fork -&gt; 414
+411: syscall fork -&gt; 415
+...
+$   
+</pre>
+<p>In the first example above, trace invokes grep tracing just the
+read system call. The 32 is <tt>1&lt;&lt;SYS_read</tt>. In the second
+example, trace runs grep while tracing all system calls; the
+2147483647 has all 31 low bits set. In the third example, the program
+isn't traced, so no trace output is printed. In the fourth example,
+the fork system calls of all the descendants of the <tt>forkforkfork</tt> test
+in <tt>usertests</tt> are being traced. Your solution is correct if your
+program behaves as shown above (though the process IDs may be
+different).
+<p>Some hints:
+ <ul>
+ <li><p>Add <tt>$U/_trace</tt> to UPROGS in Makefile
+ </p><li><p>Run <kbd>make qemu</kbd> and you will see that the
+ compiler cannot compile <tt>user/trace.c</tt>, because the
+ user-space stubs for the system call don't exist yet: add a
+ prototype for the system call to <tt>user/user.h</tt>, a stub
+ to <tt>user/usys.pl</tt>, and a syscall number
+ to <tt>kernel/syscall.h</tt>. The Makefile invokes the perl
+ script <tt>user/usys.pl</tt>, which produces <tt>user/usys.S</tt>, 
+ the actual system call stubs, which use the
+ RISC-V <tt>ecall</tt> instruction to transition to the
+ kernel. Once you fix the compilation issues, 
+ run <kbd>trace 32 grep hello README</kbd>; it will fail
+ because you haven't implemented the system call in the kernel
+ yet.
+ 
+ </p><li><p>Add a <tt>sys_trace()</tt> function
+ in <tt>kernel/sysproc.c</tt> that implements the new system
+ call by remembering its argument in a new variable in
+ the <tt>proc</tt> structure (see <tt>kernel/proc.h</tt>). The
+ functions to retrieve system call arguments from user space are
+ in <tt>kernel/syscall.c</tt>, and you can see examples
+ of their use in <tt>kernel/sysproc.c</tt>.
+ </p></li>
+ <li><p>Modify <tt>fork()</tt> (see <tt>kernel/proc.c</tt>) to copy
+ the trace mask from the parent to the child process. </p></li>
+ <li><p>Modify the <tt>syscall()</tt> function
+ in <tt>kernel/syscall.c</tt> to print the trace output. You will need to add an array of syscall names to index into.</p></li>
+ </ul>
+<h2>Sysinfo (<a class=moderate href=https://pdos.csail.mit.edu/6.828/2021/labs/guidance.html>moderate</a>)</h2>
+<p>
+<div class=required>
+ In this assignment you will add a system call, <tt>sysinfo</tt>,
+ that collects information about the running system. The system call
+ takes one argument: a pointer to a <tt>struct sysinfo</tt>
+ (see <tt>kernel/sysinfo.h</tt>). The kernel should fill out the
+ fields of this struct: the <tt>freemem</tt> field should be set
+ to the number of bytes of free memory, and the <tt>nproc</tt>
+ field should be set to the number of processes whose <tt>state</tt>
+ is not <tt>UNUSED</tt>.
+ We provide a test program <tt>sysinfotest</tt>; you pass this
+ assignment if it prints "sysinfotest: OK".
+</div>
+<p>Some hints:
+<ul>
+<li><p>Add <tt>$U/_sysinfotest</tt> to UPROGS in Makefile
+ 
+</p><li><p>Run <kbd>make qemu</kbd>; <tt>user/sysinfotest.c</tt> will
+ fail to compile. Add the system call sysinfo, following the same
+ steps as in the previous assignment. To declare the prototype for
+ sysinfo() <tt>in user/user.h</tt> you need predeclare the existence
+ of <tt>struct sysinfo</tt>:
+ <pre>    struct sysinfo;
+    int sysinfo(struct sysinfo *);
+  </pre>
+Once you fix the compilation issues, run
+ <kbd>sysinfotest</kbd>; it will fail because you haven't
+ implemented the system call in the kernel yet.
+</li>
+<li><p>sysinfo needs to copy a <tt>struct sysinfo</tt> back to user
+ space; see <tt>sys_fstat()</tt> (<tt>kernel/sysfile.c</tt>)
+ and <tt>filestat()</tt> (<tt>kernel/file.c</tt>) for examples of how
+ to do that using <tt>copyout()</tt>.
+</p></li>
+<li><p>To collect the amount of free memory, add a
+ function to <tt>kernel/kalloc.c</tt>
+</p></li>
+<li><p>To collect the number of processes, add a
+ function to <tt>kernel/proc.c</tt>
+</p></li>
+</ul>
+<p><a name=submit>
+</a><h2><a name=submit>Submit the lab</a></h2><a name=submit>
+<p><b>This completes the lab.</b> Make sure you pass all of the make
+grade tests. If this lab had questions, don't forget to write up your
+answers to the questions in answers-<i>lab-name</i>.txt. Commit your changes
+(including adding answers-<i>lab-name</i>.txt) and type make handin in the lab
+ directory to hand in your lab.
+<h3>Time spent</h3>
+<p>Create a new file, <tt>time.txt</tt>, and put in it a single integer, the
+number of hours you spent on the lab. Don't forget to <tt>git add</tt> and
+<tt>git commit</tt> the file.
+<h3>Submit</h3>
+You will turn in your assignments using
+the </a><a href=https://6828.scripts.mit.edu/2021/handin.py/>submission
+website</a>. You need to request once an API key from the submission
+website before you can turn in any assignments or labs.
+<p></p>
+<p>After committing your final changes to the lab, type <kbd>make
+handin</kbd> to submit your lab.
+<pre>$ <kbd>git commit -am "ready to submit my lab"</kbd>
+[util c2e3c8b] ready to submit my lab
+ 2 files changed, 18 insertions(+), 2 deletions(-)
+
+$ <kbd>make handin</kbd>
+tar: Removing leading `/' from member names
+Get an API key for yourself by visiting https://6828.scripts.mit.edu/2021/handin.py/
+Please enter your API key: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100 79258  100   239  100 79019    853   275k --:--:-- --:--:-- --:--:--  276k
+$
+</pre>
+<kbd>make handin</kbd> will store your API key in <i>myapi.key</i>. If you need
+to change your API key, just remove this file and let <kbd>make handin</kbd>
+generate it again (<i>myapi.key</i> must not include newline characters).
+<p></p>
+<p>
+If you run <kbd>make handin</kbd> and you have either uncomitted changes or
+untracked files, you will see output similar to the following:
+<pre> M hello.c
+?? bar.c
+?? foo.pyc
+Untracked files will not be handed in.  Continue? [y/N]
+</pre>
+Inspect the above lines and make sure all files that your lab solution needs
+are tracked i.e. not listed in a line that begins with <kbd>??</kbd>.
+You can cause <tt>git</tt> to track a new file that you create using
+<tt>git add filename</tt>.
+<p></p>
+<p>
+If <kbd>make handin</kbd> does not work properly, 
+try fixing the problem with the curl or Git commands.
+Or you can run <kbd>make tarball</kbd>.
+This will make a tar file for you, which you can
+then upload via our 
+<a href=https://6828.scripts.mit.edu/2021/handin.py/>web interface</a>.
+</p>
+<p>
+<div class=warning>
+<ul>
+ <li>Please run `make grade` to ensure that your code passes all of the tests</li>
+ <li>Commit any modified source code before running `make handin`</li>
+ <li>You can inspect the status of your submission and download the submitted
+code at <a href=https://6828.scripts.mit.edu/2021/handin.py/>https://6828.scripts.mit.edu/2021/handin.py/</a> </li>
+</ul>
+</div>
+<h2>Optional challenge exercises</h2>
+<ul>
+ <li>Print the system call arguments for traced system
+ calls (<a class=easy href=https://pdos.csail.mit.edu/6.828/2021/labs/guidance.html>easy</a>).</li>
+ <li>Compute the load average and export it through
+ sysinfo(<a class=moderate href=https://pdos.csail.mit.edu/6.828/2021/labs/guidance.html>moderate</a>).</li>
+</ul>
