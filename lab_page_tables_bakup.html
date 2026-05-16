@@ -1,0 +1,225 @@
+<html style><!--
+ Page saved with SingleFile 
+ url: https://pdos.csail.mit.edu/6.828/2021/labs/pgtbl.html 
+ saved date: Sat May 16 2026 20:55:20 GMT+0800 (China Standard Time)
+--><meta charset=utf-8>
+<title>Lab: page tables</title>
+<style>.easy{color:#00cc00}.hard{color:#ff3300}div.required,div.question,div.warning,div.prereq{margin-left:auto;margin-right:auto;margin-bottom:1em;margin-top:1em;width:80%;padding-left:1em;padding-right:1em}div.required{background-color:#e0e0ff;border:1px solid #c0c0ff}div.question{background-color:#e0e0ff;border:1px solid #c0c0ff}div.warning{background-color:#ffe0e0;border:1px solid #ffc0c0}div.prereq{background-color:#FFEFD5;border:1px solid #ffc0c0}kbd{color:#007700;font-family:monospace;font-weight:bold}</style>
+<meta name=referrer content=no-referrer><link type=image/x-icon rel="shortcut icon" href="data:image/x-icon;base64,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"><link rel=canonical href=https://pdos.csail.mit.edu/6.828/2021/labs/pgtbl.html><meta http-equiv=content-security-policy content="default-src 'none'; font-src 'self' data:; img-src 'self' data:; style-src 'unsafe-inline'; media-src 'self' data:; script-src 'unsafe-inline' data:; object-src 'self' data:; frame-src 'self' data:;"></head>
+<body>
+<h1>Lab: page tables</h1>
+<p> In this lab you will explore page tables and modify them to
+ to speed up certain system calls and to detect which pages have been accessed.
+<div class=prereq>
+<p>Before you start coding, read Chapter 3 of
+ the <a href=https://pdos.csail.mit.edu/6.828/2021/xv6/book-riscv-rev2.pdf>xv6 book</a>, and related files:
+ <ul>
+ <li> <tt>kern/memlayout.h</tt>, which captures the layout of memory.
+ 
+ <li> <tt>kern/vm.c</tt>, which contains most virtual memory (VM) code.
+ <li> <tt>kernel/kalloc.c</tt>, which contains code for allocating and
+ freeing physical memory.
+ 
+ </ul>
+It may also help to consult the <a href=https://github.com/riscv/riscv-isa-manual/releases/download/Ratified-IMFDQC-and-Priv-v1.11/riscv-privileged-20190608.pdf>RISC-V privileged architecture manual</a>.
+</div>
+<p>To start the lab, switch to the pgtbl branch:
+ <pre>  $ <kbd>git fetch</kbd>
+  $ <kbd>git checkout pgtbl</kbd>
+  $ <kbd>make clean</kbd>
+  </pre>
+<h2>Speed up system calls (<a class=easy href=https://pdos.csail.mit.edu/6.828/2021/labs/guidance.html>easy</a>)</h2>
+<p>
+Some operating systems (e.g., Linux) speed up certain system calls by sharing
+data in a read-only region between userspace and the kernel. This eliminates the
+need for kernel crossings when performing these system calls. To help you learn
+how to insert mappings into a page table, your first task is to implement this
+optimization for the <tt>getpid()</tt> system call in xv6.
+<div class=required>
+When each process is created, map one read-only page at USYSCALL (a VA defined
+in <tt>memlayout.h</tt>). At the start of this page, store a <tt>struct
+usyscall</tt> (also defined in <tt>memlayout.h</tt>), and initialize it to store
+the PID of the current process. For this lab, <tt>ugetpid()</tt> has been
+provided on the userspace side and will automatically use the USYSCALL mapping.
+You will receive full credit for this part of the lab if the <tt>ugetpid</tt> test
+case passes when running <tt>pgtbltest</tt>.
+</div>
+<p>Some hints:
+<ul>
+ <li>You can perform the mapping in <tt>proc_pagetable()</tt> in <tt>kernel/proc.c</tt>.
+ <li>Choose permission bits that allow userspace to only read the page.
+ <li>You may find that <tt>mappages()</tt> is a useful utility.
+ <li>Don't forget to allocate and initialize the page in <tt>allocproc()</tt>.
+ <li>Make sure to free the page in <tt>freeproc()</tt>.
+</ul>
+ 
+<div class=question>
+Which other xv6 system call(s) could be made faster using this shared page?
+Explain how.
+</div>
+<h2>Print a page table (<a class=easy href=https://pdos.csail.mit.edu/6.828/2021/labs/guidance.html>easy</a>)</h2>
+<p>
+To help you visualize RISC-V page tables, and perhaps
+to aid future debugging, your second task is to write a function
+that prints the contents of a page table.
+<div class=required>
+Define a function called <tt>vmprint()</tt>.
+It should take
+a <tt>pagetable_t</tt> argument, and print that pagetable
+in the format described below.
+Insert <tt>if(p-&gt;pid==1) vmprint(p-&gt;pagetable)</tt> in
+ exec.c just before the <tt>return argc</tt>,
+to print the first process's page table.
+ You receive full credit for this part of the lab
+ if you pass the <tt>pte printout</tt> test of <tt>make grade</tt>.
+ 
+</div>
+<p>
+Now when you start xv6 it should print output like this, describing
+the page table of the first process at the point when it has just
+finished <tt>exec()</tt>ing <tt>init</tt>:
+ <pre>page table 0x0000000087f6e000
+ ..0: pte 0x0000000021fda801 pa 0x0000000087f6a000
+ .. ..0: pte 0x0000000021fda401 pa 0x0000000087f69000
+ .. .. ..0: pte 0x0000000021fdac1f pa 0x0000000087f6b000
+ .. .. ..1: pte 0x0000000021fda00f pa 0x0000000087f68000
+ .. .. ..2: pte 0x0000000021fd9c1f pa 0x0000000087f67000
+ ..255: pte 0x0000000021fdb401 pa 0x0000000087f6d000
+ .. ..511: pte 0x0000000021fdb001 pa 0x0000000087f6c000
+ .. .. ..509: pte 0x0000000021fdd813 pa 0x0000000087f76000
+ .. .. ..510: pte 0x0000000021fddc07 pa 0x0000000087f77000
+ .. .. ..511: pte 0x0000000020001c0b pa 0x0000000080007000
+  </pre>
+The first line displays the argument to <tt>vmprint</tt>.
+After that there is a line for each PTE, including PTEs that
+refer to page-table pages deeper in the tree.
+Each PTE line is indented by a number of <tt>" .."</tt> that indicates its
+depth in the tree.
+Each PTE line shows the PTE index in its page-table page, the pte bits, and the
+physical address extracted from the PTE.
+Don't print PTEs that are not valid. In the above example, the
+top-level page-table page has mappings for entries 0 and 255. The next
+level down for entry 0 has only index 0 mapped, and the bottom-level
+for that index 0 has entries 0, 1, and 2 mapped.
+<p>
+Your code might emit different physical addresses than those shown above.
+The number of entries and the virtual addresses should be the same.
+</p>
+<p>Some hints:
+<ul>
+ <li>You can put <tt>vmprint()</tt> in <tt>kernel/vm.c</tt>.
+ <li>Use the macros at the end of the file kernel/riscv.h.
+ <li>The function <tt>freewalk</tt> may be inspirational.
+ <li>Define the prototype for <tt>vmprint</tt> in kernel/defs.h so
+ that you can call it from exec.c.
+ <li>Use <tt>%p</tt> in your printf calls to print out full 64-bit hex PTEs and addresses as shown in the example.</li>
+</ul>
+<div class=question>
+Explain the output of <tt>vmprint</tt> in terms of Fig 3-4 from the
+text. What does page 0 contain? What is in page 2?
+When running in user mode, could the process read/write the memory
+mapped by page 1? What does the third to last page contain?
+</div>
+<h2>Detecting which pages have been accessed (<a class=hard href=https://pdos.csail.mit.edu/6.828/2021/labs/guidance.html>hard</a>)</h2>
+<p>
+Some garbage collectors (a form of automatic memory management) can benefit
+from information about which pages have been accessed (read or write). In this
+part of the lab, you will add a new feature to xv6 that detects and reports this
+information to userspace by inspecting the access bits in the RISC-V page table.
+The RISC-V hardware page walker marks these bits in the PTE whenever it resolves
+a TLB miss.
+ <div class=required>
+Your job is to implement <tt>pgaccess()</tt>, a system call that reports which
+pages have been accessed. The system call takes three arguments. First, it takes
+the starting virtual address of the first user page to check. Second, it takes the
+number of pages to check. Finally, it takes a user address to a buffer to store
+the results into a bitmask (a datastructure that uses one bit per page and where
+the first page corresponds to the least significant bit). You will receive full
+credit for this part of the lab if the <tt>pgaccess</tt> test case passes when
+running <tt>pgtbltest</tt>.
+</div>
+<p>Some hints:
+<ul>
+ <li>Start by implementing <tt>sys_pgaccess()</tt> in <tt>kernel/sysproc.c</tt>.
+ <li>You'll need to parse arguments using <tt>argaddr()</tt> and <tt>argint()</tt>.
+ <li>For the output bitmask, it's easier to store a temporary buffer in the kernel and copy it to the user (via <tt>copyout()</tt>) after filling it with the right bits.
+ <li>It's okay to set an upper limit on the number of pages that can be scanned.
+ <li><tt>walk()</tt> in <tt>kernel/vm.c</tt> is very useful for finding the right PTEs.
+ <li>You'll need to define <tt>PTE_A</tt>, the access bit, in <tt>kernel/riscv.h</tt>. Consult the RISC-V manual to determine its value.
+ <li>Be sure to clear <tt>PTE_A</tt> after checking if it is set. Otherwise, it won't be possible to determine if the page was accessed since the last time <tt>pgaccess()</tt> was called (i.e., the bit will be set forever).
+ <li><tt>vmprint()</tt> may come in handy to debug page tables.
+</ul>
+<p><a name=submit>
+</a><h2><a name=submit>Submit the lab</a></h2><a name=submit>
+<p><b>This completes the lab.</b> Make sure you pass all of the make
+grade tests. If this lab had questions, don't forget to write up your
+answers to the questions in answers-<i>lab-name</i>.txt. Commit your changes
+(including adding answers-<i>lab-name</i>.txt) and type make handin in the lab
+ directory to hand in your lab.
+<h3>Time spent</h3>
+<p>Create a new file, <tt>time.txt</tt>, and put in it a single integer, the
+number of hours you spent on the lab. Don't forget to <tt>git add</tt> and
+<tt>git commit</tt> the file.
+<h3>Submit</h3>
+You will turn in your assignments using
+the </a><a href=https://6828.scripts.mit.edu/2021/handin.py/>submission
+website</a>. You need to request once an API key from the submission
+website before you can turn in any assignments or labs.
+<p></p>
+<p>After committing your final changes to the lab, type <kbd>make
+handin</kbd> to submit your lab.
+<pre>$ <kbd>git commit -am "ready to submit my lab"</kbd>
+[util c2e3c8b] ready to submit my lab
+ 2 files changed, 18 insertions(+), 2 deletions(-)
+
+$ <kbd>make handin</kbd>
+tar: Removing leading `/' from member names
+Get an API key for yourself by visiting https://6828.scripts.mit.edu/2021/handin.py/
+Please enter your API key: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100 79258  100   239  100 79019    853   275k --:--:-- --:--:-- --:--:--  276k
+$
+</pre>
+<kbd>make handin</kbd> will store your API key in <i>myapi.key</i>. If you need
+to change your API key, just remove this file and let <kbd>make handin</kbd>
+generate it again (<i>myapi.key</i> must not include newline characters).
+<p></p>
+<p>
+If you run <kbd>make handin</kbd> and you have either uncomitted changes or
+untracked files, you will see output similar to the following:
+<pre> M hello.c
+?? bar.c
+?? foo.pyc
+Untracked files will not be handed in.  Continue? [y/N]
+</pre>
+Inspect the above lines and make sure all files that your lab solution needs
+are tracked i.e. not listed in a line that begins with <kbd>??</kbd>.
+You can cause <tt>git</tt> to track a new file that you create using
+<tt>git add filename</tt>.
+<p></p>
+<p>
+If <kbd>make handin</kbd> does not work properly, 
+try fixing the problem with the curl or Git commands.
+Or you can run <kbd>make tarball</kbd>.
+This will make a tar file for you, which you can
+then upload via our 
+<a href=https://6828.scripts.mit.edu/2021/handin.py/>web interface</a>.
+</p>
+<p>
+<div class=warning>
+<ul>
+ <li>Please run `make grade` to ensure that your code passes all of the tests</li>
+ <li>Commit any modified source code before running `make handin`</li>
+ <li>You can inspect the status of your submission and download the submitted
+code at <a href=https://6828.scripts.mit.edu/2021/handin.py/>https://6828.scripts.mit.edu/2021/handin.py/</a> </li>
+</ul>
+</div>
+<h2>Optional challenge exercises</h2>
+<ul>
+ <li>Use super-pages to reduce the number of PTEs in page tables.
+ <li>Unmap the first page of a user process so that dereferencing a
+ null pointer will result in a fault. You will have to start the
+ user text segment at, for example, 4096, instead of 0.
+ <li>Add a system call that reports dirty pages (modified pages) using <tt>PTE_D</tt>.
+</ul>
